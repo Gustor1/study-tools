@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Tools · Eliott</title>
+<meta name="description" content="Interactive revision tools I built for my engineering courses: an in-browser SQL trainer, a Cisco IOS simulator, a cabling lab, a 438-card networking quiz and a Java lab trainer. Offline, no account.">
+<meta property="og:title" content="Study Tools · Eliott">
+<meta property="og:description" content="The revision tools I wish I had: SQL in the browser, a Cisco IOS simulator, a cabling lab, a 438-card quiz and a Java trainer.">
+<meta property="og:image" content="img/sr71-simulateur-desktop.webp">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2305070F'/%3E%3Cpath d='M8 11l6 5-6 5' stroke='%23FFD27A' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16 22h8' stroke='%237FD6FF' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#05070F; --bg2:#0B1222; --panel:#0E172A; --line:#22304A; --line2:#2E3D5C;
+  --ink:#ECEFF7; --mut:#9AA6BF; --dim:#6B7894;
+  --gold:#FFD27A; --sky:#7FD6FF; --red:#E0563F; --violet:#3B2A55;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--sky)}
+img{display:block;max-width:100%;height:auto}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.eyebrow{font:500 12.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.chip{display:inline-block;font:13px/1 var(--mono);color:#C9D2E6;border:1px solid var(--line2);background:var(--panel);padding:7px 11px;border-radius:999px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+  background:radial-gradient(60% 80% at 80% 40%,rgba(59,42,85,.55),transparent 70%),linear-gradient(160deg,var(--bg),#101A2E)}
+.stars{position:absolute;inset:0;pointer-events:none}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#DCE6FF;opacity:.25;animation:tw 5s ease-in-out infinite}
+@keyframes tw{50%{opacity:.9}}
+.hero .wrap{position:relative;padding-top:56px;padding-bottom:64px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:64px}
+.top a{color:var(--mut);text-decoration:none;font:14px var(--mono)}
+.top a:hover{color:var(--ink)}
+h1{font:400 clamp(40px,7vw,76px)/1.04 var(--serif);margin:18px 0 22px;letter-spacing:-.01em;max-width:14ch}
+h1 em{font-style:italic;color:var(--gold)}
+.lead{font-size:clamp(17px,2vw,20px);color:#C9D2E6;max-width:60ch;margin:0}
+.lead-fr{font:italic 16px/1.5 var(--serif);color:var(--mut);margin:14px 0 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:48px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stat{background:rgba(11,18,34,.85);padding:20px 22px}
+.stat b{display:block;font:400 34px/1 var(--serif);color:var(--ink)}
+.stat span{font-size:14px;color:var(--mut)}
+
+/* tools */
+.tool{padding:96px 0;border-bottom:1px solid var(--line)}
+.tool:nth-child(even){background:linear-gradient(180deg,var(--bg2),var(--bg))}
+.tool .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px;align-items:center}
+.tool:nth-child(even) .wrap{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}
+.tool:nth-child(even) .copy{order:2}
+h2{font:400 clamp(30px,4vw,42px)/1.1 var(--serif);margin:14px 0 16px}
+.copy p{color:#C9D2E6;margin:0 0 18px}
+.copy ul{list-style:none;margin:0 0 24px;padding:0}
+.copy li{position:relative;padding:9px 0 9px 26px;border-top:1px solid var(--line);color:#C9D2E6;font-size:15.5px}
+.copy li:last-child{border-bottom:1px solid var(--line)}
+.copy li::before{content:"";position:absolute;left:4px;top:18px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(224,86,63,.18)}
+.copy li b{color:var(--ink);font-weight:600}
+.copy .status{margin:22px 0 0;font:13.5px/1.5 var(--mono);color:var(--dim)}
+.status a{color:var(--gold)}
+
+/* screens */
+.screens{position:relative;padding-bottom:44px}
+.browser{border:1px solid var(--line2);border-radius:12px;overflow:hidden;background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.02)}
+.browser .bar{display:flex;align-items:center;gap:7px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.browser .bar i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+.browser .bar span{margin-left:10px;font:12px var(--mono);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phone{position:absolute;right:-14px;bottom:0;width:23%;min-width:120px;border:6px solid #1A2438;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 24px 60px -20px rgba(0,0,0,.9)}
+.tool:nth-child(even) .phone{right:auto;left:-14px}
+.second{margin-top:14px;width:62%;border-radius:10px;border:1px solid var(--line2);overflow:hidden;opacity:.92}
+.tool:nth-child(even) .second{margin-left:auto}
+
+/* method */
+.method{padding:96px 0}
+.method h2{max-width:20ch}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:40px}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:24px}
+.card h3{font:600 17px/1.3 var(--sans);margin:12px 0 8px}
+.card p{margin:0;color:var(--mut);font-size:15.5px}
+.num{font:13px var(--mono);color:var(--gold)}
+.note{margin-top:40px;padding:20px 22px;border-left:3px solid var(--gold);background:rgba(255,210,122,.05);border-radius:0 10px 10px 0;color:#C9D2E6;font-size:15.5px}
+footer{border-top:1px solid var(--line);padding:36px 0 48px;color:var(--dim);font:14px var(--mono)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--mut)}
+
+@media (max-width:900px){
+  .tool .wrap,.tool:nth-child(even) .wrap{grid-template-columns:1fr;gap:40px}
+  .tool:nth-child(even) .copy{order:0}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .grid3{grid-template-columns:1fr}
+  .phone,.tool:nth-child(even) .phone{right:0;left:auto;width:30%}
+  .second{display:none}
+  .tool,.method{padding:72px 0}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px}
+  .top{margin-bottom:40px}
+  .top .eyebrow{font-size:11px;letter-spacing:.1em}
+  .top a{font-size:12.5px}
+  .screens{padding-bottom:36px}
+  .phone,.tool:nth-child(even) .phone{width:34%;min-width:0;border-width:4px;border-radius:16px;right:-4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="stars" aria-hidden="true" id="stars"></div>
+  <div class="wrap">
+    <nav class="top" aria-label="Site">
+      <span class="eyebrow">Eliott · Study tools</span>
+      <a href="https://github.com/Gustor1">GitHub ↗</a>
+    </nav>
+    <p class="eyebrow">Engineering student · UTBM</p>
+    <h1>I build the revision tools <em>I wish I had.</em></h1>
+    <p class="lead">Before each exam, I turn the course into an interactive website: SQL that runs in the browser, a Cisco console I can practise on, a cabling bench, a 438-card quiz. No account, progress saved locally, works offline.</p>
+    <p class="lead-fr">Avant chaque examen, je transforme le cours en site de révision interactif, et je m'en sers vraiment.</p>
+    <div class="stats" role="list">
+      <div class="stat" role="listitem"><b>5</b><span>tools, 4 courses + English</span></div>
+      <div class="stat" role="listitem"><b>600+</b><span>exercises &amp; quiz cards</span></div>
+      <div class="stat" role="listitem"><b>0</b><span>accounts, servers or tracking</span></div>
+      <div class="stat" role="listitem"><b>100%</b><span>static, offline-ready</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="tools">
+
+  <section class="tool" aria-labelledby="t-sql">
+    <div class="wrap">
+      <div class="copy">
+        <p class="eyebrow">01 · Databases (BD70)</p>
+        <h2 id="t-sql">SQL trainer that grades your queries</h2>
+        <p>A progressive SQL path where every exercise runs on a fresh database inside the browser. The answer checker compares your <em>result</em> with the expected one, so any correct query passes, not only the one in the answer key.</p>
+        <ul>
+          <li><b>11 levels</b>, from <code>SELECT</code> to joins, subqueries, <code>CREATE TABLE</code> and views</li>
+          <li><b>SQLite compiled to WebAssembly</b> (sql.js) with a small MySQL compatibility layer</li>
+          <li>Entity-relationship design method, normalisation and optimisation sheets, a free sandbox</li>
+          <li>Hints, reference solution and a short explanation after each check</li>
+        </ul>
+        <div class="chips"><span class="chip">JavaScript</span><span class="chip">sql.js · WASM</span><span class="chip">localStorage</span><span class="chip">Offline</span></div>
+        <p class="status">Source private · course material stays with the course</p>
+      </div>
+      <div class="screens">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>revision-bd70 · Parcours SQL</span></div>
+          <img src="img/bd70-exercice-desktop.webp" width="1440" height="900" alt="SQL exercise on joins: the query typed by the student has been checked and the page shows 'Bravo, c'est juste !' with an explanation of the foreign key." loading="lazy"></div>
+        <img class="second" src="img/bd70-parcours-desktop.webp" width="1440" height="900" alt="SQL path overview: eleven levels from SELECT to CREATE TABLE, each with a progress bar." loading="lazy">
+        <div class="phone"><img src="img/bd70-exercice-mobile.webp" width="780" height="1688" alt="" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool" aria-labelledby="t-ios">
+    <div class="wrap">
+      <div class="copy">
+        <p class="eyebrow">02 · Networking lab (SR71)</p>
+        <h2 id="t-ios">A Cisco IOS console in the browser</h2>
+        <p>For a hands-on lab exam on real switches and routers, I wrote a teaching simulator of the Cisco command line, with missions that grade themselves as you type.</p>
+        <ul>
+          <li><b>IOS simulator</b>: modes, abbreviations (<code>conf t</code>, <code>sh ip int br</code>), <code>?</code> help, Tab completion, realistic errors</li>
+          <li><b>Cabling bench</b>: wire the lab topology with straight, crossover or console cables, then check it</li>
+          <li>Commands by machine, English instruction → command translator, timed randomised mock exams</li>
+        </ul>
+        <div class="chips"><span class="chip">Vanilla JS</span><span class="chip">Command parser</span><span class="chip">SVG</span><span class="chip">Offline</span></div>
+        <p class="status">Source private · demo on request</p>
+      </div>
+      <div class="screens">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>sr71-revision-tp · Simulateur IOS</span></div>
+          <img src="img/sr71-simulateur-desktop.webp" width="1440" height="900" alt="IOS simulator: a dark console where a switch is being configured, next to a mission panel whose objectives tick off automatically." loading="lazy"></div>
+        <img class="second" src="img/sr71-cablage-desktop.webp" width="1440" height="900" alt="Cabling lab: PC-A, switch S1 with 24 ports, router R1, host PC and PC-B, waiting to be wired." loading="lazy">
+        <div class="phone"><img src="img/sr71-simulateur-mobile.webp" width="780" height="1688" alt="" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool" aria-labelledby="t-qcm">
+    <div class="wrap">
+      <div class="copy">
+        <p class="eyebrow">03 · Networking theory (SR71)</p>
+        <h2 id="t-qcm">438 quiz cards, one at a time</h2>
+        <p>A French quiz app for the CCNA 1 and 2 modules, with 153 original questions on the topics the question banks left out, each linked to the exact course slides.</p>
+        <ul>
+          <li><b>41 “reflex” families</b>: how to recognise a question type, the method, the trap, a mnemonic</li>
+          <li>10 express lessons and 69 open questions for the written part</li>
+          <li>Filters by chapter, never seen, mistakes and favourites; <b>JSON export/import</b> of progress</li>
+        </ul>
+        <div class="chips"><span class="chip">Python build</span><span class="chip">JSON content</span><span class="chip">Single HTML file</span></div>
+        <p class="status">Source private</p>
+      </div>
+      <div class="screens">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>sr71-revision-qcm · Un QCM à la fois</span></div>
+          <img src="img/qcm-desktop.webp" width="1440" height="900" alt="Quiz app: progress counters out of 438 cards, session filters on the left and an original multiple-choice question linked to the course slides." loading="lazy"></div>
+        <div class="phone"><img src="img/qcm-mobile.webp" width="780" height="1688" alt="" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool" aria-labelledby="t-java">
+    <div class="wrap">
+      <div class="copy">
+        <p class="eyebrow">04 · Java (PR70)</p>
+        <h2 id="t-java">Java lab trainer, every snippet compiled</h2>
+        <p>The exam is on paper: read code, fill in the blanks. So the site trains exactly that, chapter by chapter in the order of the labs.</p>
+        <ul>
+          <li><b>94 corrected exercises</b>; the code of each one was compiled and run with Java 21</li>
+          <li>Fill-in-the-blank, “what does it print?”, multiple choice, one cheat sheet per chapter</li>
+          <li>Printable mock exam with answer key, an A4 cheat sheet and a lab coverage page</li>
+        </ul>
+        <div class="chips"><span class="chip">JavaScript</span><span class="chip">Java 21</span><span class="chip">Print CSS</span></div>
+        <p class="status">Source private</p>
+      </div>
+      <div class="screens">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>revision-tp-java · Accueil</span></div>
+          <img src="img/java-accueil-desktop.webp" width="1440" height="900" alt="Java trainer home: 94 corrected exercises, an A4 cheat sheet and a six-step study path, with the lab chapters in a sidebar." loading="lazy"></div>
+        <img class="second" src="img/java-chapitre-desktop.webp" width="1440" height="900" alt="Java chapter on collections: a plain-language explanation followed by curated videos." loading="lazy">
+        <div class="phone"><img src="img/java-accueil-mobile.webp" width="780" height="1688" alt="" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool" aria-labelledby="t-eng">
+    <div class="wrap">
+      <div class="copy">
+        <p class="eyebrow">05 · English · live</p>
+        <h2 id="t-eng">TechTalk, an English revision workshop</h2>
+        <p>Exercises with explained corrections for the first-semester written English exam. This one is still public and in use.</p>
+        <div class="chips"><span class="chip">HTML</span><span class="chip">CSS</span><span class="chip">JavaScript</span></div>
+        <p class="status"><a href="https://gustor1.github.io/techtalk-revision/">Open the live site ↗</a></p>
+      </div>
+      <div class="screens">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>gustor1.github.io/techtalk-revision</span></div>
+          <img src="img/techtalk-desktop.webp" width="1440" height="900" alt="TechTalk revision workshop home page." loading="lazy"></div>
+        <div class="phone"><img src="img/techtalk-mobile.webp" width="780" height="1688" alt="" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<section class="method" aria-labelledby="m-title">
+  <div class="wrap">
+    <p class="eyebrow">How I build them</p>
+    <h2 id="m-title">Same recipe every time, and it holds up.</h2>
+    <div class="grid3">
+      <div class="card"><span class="num">01</span><h3>Start from the real course</h3><p>Slides, labs and scanned handouts become structured content. A coverage page shows which part of the course each exercise trains, so gaps are visible instead of guessed.</p></div>
+      <div class="card"><span class="num">02</span><h3>Grade automatically, explain always</h3><p>SQL runs on a real engine, IOS commands go through a parser, Java snippets are compiled. Every answer comes with a short explanation, not just right or wrong.</p></div>
+      <div class="card"><span class="num">03</span><h3>Local-first by default</h3><p>Static files, no account, no server. Progress lives in the browser and can be exported. The same idea as my travel app <a href="https://app-vacances-27.vercel.app">Détours</a>.</p></div>
+    </div>
+    <p class="note">Why the sources are private: the tools are built on course material (labs, slides, handouts) that belongs to the teaching staff. The screenshots here only show my own exercises and interface. Happy to give a live demo.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Eliott · UTBM engineering student, apprentice at Électricité de Strasbourg</span>
+    <span><a href="https://github.com/Gustor1">GitHub</a> · <a href="https://www.linkedin.com/in/eliott-le-bb24a5363/">LinkedIn</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var s=document.getElementById('stars'); if(!s) return;
+  var seed=7; function r(){seed=(seed*9301+49297)%233280;return seed/233280;}
+  for(var i=0;i<70;i++){var e=document.createElement('i');
+    e.style.left=(r()*100)+'%'; e.style.top=(r()*100)+'%';
+    e.style.animationDelay=(r()*5).toFixed(2)+'s'; if(r()>.7){e.style.width=e.style.height='1px';}
+    s.appendChild(e);}
+})();
+</script>
+</body>
+</html>
